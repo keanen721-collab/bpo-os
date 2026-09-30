@@ -1,0 +1,9 @@
+{
+  "name":"bpo-os-v03",
+  "version":"0.3.0",
+  "private":true,
+  "description":"BPO OS MVP 0.3 - local full-stack prototype",
+  "main":"server.js",
+  "scripts":{"start":"node server.js"},
+  "dependencies":{"express":"^4.21.2","better-sqlite3":"^11.7.0","bcryptjs":"^2.4.3","jsonwebtoken":"^9.0.2"}
+}
