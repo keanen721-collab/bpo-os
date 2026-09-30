@@ -1,6 +1,6 @@
 const express=require("express"), path=require("path"), Database=require("better-sqlite3"), bcrypt=require("bcryptjs"), jwt=require("jsonwebtoken");
 const app=express(), db=new Database("bpo.sqlite"), SECRET=process.env.JWT_SECRET||"change-this-secret-in-production";
-app.use(express.json()); app.use(express.static(path.join(__dirname,"public")));
+app.use(express.json()); app.use(express.static(__dirname));
 db.pragma("foreign_keys=ON");
 db.exec(`
 CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL,email TEXT UNIQUE NOT NULL,password_hash TEXT NOT NULL,role TEXT NOT NULL DEFAULT 'agent',created_at TEXT DEFAULT CURRENT_TIMESTAMP);
@@ -33,4 +33,5 @@ app.post("/api/campaigns",auth,(req,res)=>{if(!["admin","manager"].includes(req.
 app.post("/api/customers",auth,(req,res)=>{const r=db.prepare("INSERT INTO customers(name,email,client_id,last_interaction) VALUES(?,?,?,?)").run(req.body.name,req.body.email||"",req.body.client_id||null,req.body.last_interaction||"New");log(req.user,"Created customer "+r.lastInsertRowid);res.json({id:r.lastInsertRowid})});
 app.post("/api/tickets",auth,(req,res)=>{const r=db.prepare("INSERT INTO tickets(customer_id,subject,priority,status,agent_id) VALUES(?,?,?,?,?)").run(req.body.customer_id||null,req.body.subject,req.body.priority||"Normal",req.body.status||"Open",req.body.agent_id||null);log(req.user,"Created ticket "+r.lastInsertRowid);res.json({id:r.lastInsertRowid})});
 app.post("/api/users",auth,(req,res)=>{if(req.user.role!=="admin")return res.status(403).json({error:"Forbidden"});const hash=bcrypt.hashSync(req.body.password||"ChangeMe123!",10);try{const r=db.prepare("INSERT INTO users(name,email,password_hash,role) VALUES(?,?,?,?)").run(req.body.name,req.body.email,hash,req.body.role||"agent");log(req.user,"Created user "+r.lastInsertRowid);res.json({id:r.lastInsertRowid})}catch(e){res.status(400).json({error:"Email already exists"})}});
-app.listen(3000,()=>console.log("BPO OS v0.3 running at http://localhost:3000"));
+const PORT=process.env.PORT||3000;
+app.listen(PORT,"0.0.0.0",()=>console.log(`BPO OS v0.3 running on port ${PORT}`));
